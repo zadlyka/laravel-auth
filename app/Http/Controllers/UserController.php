@@ -13,7 +13,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        return new UserResource(200, 'List data user', User::paginate());
+        return new UserResource(200, 'List data user', User::with(['roles'])->paginate());
     }
 
     public function store(StoreUserRequest $request)
@@ -30,13 +30,13 @@ class UserController extends Controller
 
     public function show($id)
     {
-        return new UserResource(200, 'Detail data user', User::findOrFail($id));
+        return new UserResource(200, 'Detail data user', User::with(['roles'])->findOrFail($id));
     }
 
 
     public function update(UpdateUserRequest $request, $id)
     {
-        $user = User::find($id);
+        $user = User::with(['roles'])->findOrFail($id);
         $user->update([
             'name'     => $request->name,
             'email'   => $request->email,
@@ -47,7 +47,7 @@ class UserController extends Controller
     public function destroy($id)
     {
 
-        $user = User::find($id);
+        $user = User::with(['roles'])->findOrFail($id);
         $user->delete();
         return new UserResource(200, 'Delete data user', null);
     }
