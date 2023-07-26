@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserRole;
-use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Resources\User\UserResource;
+use App\Http\Resources\User\UserCollection;
 use App\Http\Requests\user\StoreUserRequest;
 use App\Http\Requests\user\UpdateUserRequest;
 
@@ -18,7 +19,7 @@ class UserController extends Controller
 
     public function index()
     {
-        return new UserResource(200, 'List data user', User::paginate());
+        return new UserCollection(User::paginate(), 200, 'List data user');
     }
 
     public function store(StoreUserRequest $request)
@@ -35,12 +36,12 @@ class UserController extends Controller
                 'role_id' => $role,
             ]);
         }
-        return new UserResource(201, 'Create data user', $user);
+        return new UserResource($user, 201, 'Create data user');
     }
 
     public function show(User $user)
     {
-        return new UserResource(200, 'Detail data user', $user);
+        return new UserResource($user, 200, 'Detail data user');
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -58,13 +59,12 @@ class UserController extends Controller
                 ]);
             }
         }
-
-        return new UserResource(200, 'Update data user', $user);
+        return new UserResource($user, 200, 'Update data user');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return new UserResource(200, 'Delete data user', null);
+        return new UserResource($user, 200, 'Delete data user');
     }
 }

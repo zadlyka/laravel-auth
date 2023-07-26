@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Auth;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -9,9 +9,8 @@ class AuthResource extends JsonResource
 {
     public $status_code;
     public $message;
-    public $resource;
 
-    public function __construct($status_code, $message, $resource)
+    public function __construct($resource, $status_code = 200, $message = 'success')
     {
         parent::__construct($resource);
         $this->status_code  = $status_code;
@@ -24,10 +23,14 @@ class AuthResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        return parent::toArray($request);
+    }
+
+    public function with(Request $request): array
+    {
         return [
-            'status_code' => $this->status_code, 
-            'message'   => $this->message,
-            'data' => $this->resource
+            'status_code' => $this->status_code,
+            'message' => $this->message
         ];
     }
 }
