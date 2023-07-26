@@ -24,6 +24,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => 'string|max:255',
             'email' => 'string|max:255|unique:users|email',
+            'roles.*' => 'integer'
         ];
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\UserRole;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\user\StoreUserRequest;
@@ -11,9 +11,14 @@ use App\Http\Requests\user\UpdateUserRequest;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(User::class, 'user');
+    }
+
     public function index()
     {
-        return new UserResource(200, 'List data user', User::with(['roles'])->paginate());
+        return new UserResource(200, 'List data user', User::paginate());
     }
 
     public function store(StoreUserRequest $request)
@@ -24,30 +29,41 @@ class UserController extends Controller
             'email'   => $request->email,
             'password' => $hash
         ]);
+        foreach ($request->roles as $role) {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_id' => $role,
+            ]);
+        }
         return new UserResource(201, 'Create data user', $user);
     }
 
-
-    public function show($id)
+    public function show(User $user)
     {
-        return new UserResource(200, 'Detail data user', User::with(['roles'])->findOrFail($id));
+        return new UserResource(200, 'Detail data user', $user);
     }
 
-
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $user = User::with(['roles'])->findOrFail($id);
         $user->update([
             'name'     => $request->name,
             'email'   => $request->email,
         ]);
+        if ($request->roles) {
+            UserRole::where('user_id', $user->id)->forceDelete();
+            foreach ($request->roles as $role) {
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'role_id' => $role,
+                ]);
+            }
+        }
+
         return new UserResource(200, 'Update data user', $user);
     }
 
-    public function destroy($id)
+    public function destroy(User $user)
     {
-
-        $user = User::with(['roles'])->findOrFail($id);
         $user->delete();
         return new UserResource(200, 'Delete data user', null);
     }

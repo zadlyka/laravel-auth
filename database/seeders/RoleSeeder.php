@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Permission;
+use App\Enums\RoleId;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -13,12 +15,27 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::factory()->create([
+        Role::create([
+            'id' => RoleId::SuperAdmin,
             'name' => 'Super Admin',
+            'permission' => [
+                Permission::ManageAll
+            ]
         ]);
 
-        Role::factory()->create([
+        Role::create([
+            'id' => RoleId::Admin,
             'name' => 'Admin',
+            'permission' => [
+                Permission::ManageRole,
+                Permission::ManageUser
+            ]
+        ]);
+
+        Role::create([
+            'id' => RoleId::Employee,
+            'name' => 'Employee',
+            'permission' => []
         ]);
     }
 }

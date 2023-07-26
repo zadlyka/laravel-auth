@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use App\Http\Resources\AuthResource;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,12 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password)
         ]);
+        foreach($request->roles as $role) {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_id' => $role,
+            ]);
+        }
         $token = $user->createToken('auth_token')->plainTextToken;
         return new AuthResource(201, 'Register success', [
             'user' => $user,
