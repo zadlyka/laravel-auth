@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class Handler extends ExceptionHandler
 {
@@ -27,8 +29,21 @@ class Handler extends ExceptionHandler
             //
         });
 
-        $this->renderable(function (Throwable $e) {
-            return response(['status_code' => $e->getCode() ?: 400, 'error' => $e->getMessage()], $e->getCode() ?: 400);
+
+        $this->renderable(function (Throwable $e, Request $request) {
+            if ($request->is('api/*')) {
+                $statusCode = 400;
+
+                if ($e instanceof HttpExceptionInterface) {
+                    $statusCode = $e->getStatusCode();
+                }
+
+                return response()->json([
+                    'status_code' => $statusCode,
+                    'message' => $e->getMessage()
+                ], $statusCode);
+            }
+            return parent::render($request, $e);
         });
     }
 }

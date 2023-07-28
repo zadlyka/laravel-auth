@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserRole;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\User\UserCollection;
@@ -17,9 +19,17 @@ class UserController extends Controller
         $this->authorizeResource(User::class, 'user');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return new UserCollection(User::paginate(), 200, 'List data user');
+        $limit =  $request->input('limit') ?? 10;
+        $search =  $request->input('search');
+        $sort = $request->input('sort');
+        $filter = $request->input('filter');
+        return new UserCollection(
+            User::search($search)->sort($sort)->filter($filter)->paginate($limit),
+            Response::HTTP_OK,
+            'List data user'
+        );
     }
 
     public function store(StoreUserRequest $request)
@@ -36,12 +46,12 @@ class UserController extends Controller
                 'role_id' => $role,
             ]);
         }
-        return new UserResource($user, 201, 'Create data user');
+        return new UserResource($user, Response::HTTP_CREATED, 'Create data user');
     }
 
     public function show(User $user)
     {
-        return new UserResource($user, 200, 'Detail data user');
+        return new UserResource($user, Response::HTTP_OK, 'Detail data user');
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -59,12 +69,12 @@ class UserController extends Controller
                 ]);
             }
         }
-        return new UserResource($user, 200, 'Update data user');
+        return new UserResource($user, Response::HTTP_OK, 'Update data user');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return new UserResource($user, 200, 'Delete data user');
+        return new UserResource($user, Response::HTTP_OK, 'Delete data user');
     }
 }

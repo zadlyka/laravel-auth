@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Role;
+use App\Helpers\FilterHelper;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,4 +55,34 @@ class User extends Authenticatable
     }
 
     public $with = ['roles'];
+
+    public function scopeSearch(Builder $query, $search): void
+    {
+        $query->when($search ?? false, function ($query, $search) {
+            return $query->where('name', 'LIKE', '%' . $search . '%')
+                ->orWhere('email', 'LIKE', '%' . $search . '%');
+        });
+    }
+
+    public function scopeSort(Builder $query, $sortBy): void
+    {
+        $query->when($sortBy ?? false, function ($query, $sort) {
+            $sortby = explode(":", $sort);
+            $field = $sortby[0];
+            $order = $sortby[1];
+
+            return $query->orderBy($field, $order);
+        });
+    }
+
+    public function scopeFilter(Builder $query, $filter): void
+    {
+        $query->when($filter['created_at'] ?? false, function ($query, $value) {
+            return FilterHelper::querying($query, 'created_at', $value);
+        });
+
+        $query->when($filter['updated_at'] ?? false, function ($query, $value) {
+            return FilterHelper::querying($query, 'updated_at', $value);
+        });
+    }
 }
