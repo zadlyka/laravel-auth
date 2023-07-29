@@ -3,7 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Resources\User\UserResource;
+use App\Http\Resources\User\UserCollection;
+use App\Http\Requests\user\StoreUserRequest;
+use App\Http\Requests\user\UpdateUserRequest;
 
 class UserController extends Controller
 {
@@ -11,61 +18,63 @@ class UserController extends Controller
     {
         $this->authorizeResource(User::class, 'user');
     }
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(Request $request)
     {
-        //
-        return User::paginate();
+        $limit =  $request->input('limit') ?? 10;
+        $search =  $request->input('search');
+        $sort = $request->input('sort');
+        $filter = $request->input('filter');
+        return new UserCollection(
+            User::search($search)->sort($sort)->filter($filter)->paginate($limit),
+            Response::HTTP_OK,
+            'List data user'
+        );
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreUserRequest $request)
     {
-        //
+        $hash = $request->input('password') ? Hash::make($request->input('password')) : Hash::make('not-set');
+        $user = User::create([
+            'name'  =>  $request->input('name'),
+            'email' =>  $request->input('email'),
+            'password'  => $hash
+        ]);
+        foreach ($request->input('roles') as $role) {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_id' => $role,
+            ]);
+        }
+        return new UserResource($user, Response::HTTP_CREATED, 'Create data user');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(User $user)
     {
-        //
-        return $user;
+        return new UserResource($user, Response::HTTP_OK, 'Detail data user');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        $user->update([
+            'name'  =>  $request->input('name'),
+            'email' =>  $request->input('email'),
+        ]);
+        if ($request->input('roles')) {
+            UserRole::where('user_id', $user->id)->forceDelete();
+            foreach ($request->input('roles') as $role) {
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'role_id' => $role,
+                ]);
+            }
+        }
+        return new UserResource($user, Response::HTTP_OK, 'Update data user');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(User $user)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $user->delete();
+        return new UserResource(null, Response::HTTP_OK, 'Delete data user');
     }
 }

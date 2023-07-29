@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Auth;
+namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AuthResource extends JsonResource
+class UserResource extends JsonResource
 {
     private $status_code;
     private $message;

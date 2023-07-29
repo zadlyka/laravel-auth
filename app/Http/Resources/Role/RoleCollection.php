@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Auth;
+namespace App\Http\Resources\Role;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class AuthResource extends JsonResource
+class RoleCollection extends ResourceCollection
 {
     private $status_code;
     private $message;
@@ -18,13 +18,15 @@ class AuthResource extends JsonResource
         $this->message = $message;
     }
     /**
-     * Transform the resource into an array.
+     * Transform the resource collection into an array.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'data' => RoleResource::collection($this->collection)
+        ];
     }
 
     public function with(Request $request): array
